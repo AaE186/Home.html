@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои Заметки</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+  margin: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+header {
+  text-align: center;
+  padding: 2rem 0 1rem 0;
+  background: rgba(255,255,255,0.7);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 1rem;
+  border-radius: 0 0 24px 24px;
+}
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+.tab {
+  background: #fff;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 24px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+}
+.tab.active, .tab:hover {
+  background: linear-gradient(90deg, #fda085 0%, #f6d365 100%);
+  color: #fff;
+  transform: scale(1.08) rotate(-2deg);
+  box-shadow: 0 4px 16px rgba(253,160,133,0.15);
+}
+.tab:after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255,255,255,0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+  z-index: 0;
+}
+.tab:active:after {
+  width: 120px;
+  height: 120px;
+}
+main {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 300px;
+}
+.tab-content {
+  display: none;
+  background: rgba(255,255,255,0.85);
+  padding: 2rem 2.5rem;
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  min-width: 320px;
+  max-width: 420px;
+  animation: fadeIn 0.7s cubic-bezier(.4,2,.6,1) forwards;
+  opacity: 0;
+  transform: translateY(30px) scale(0.98);
+}
+.tab-content.active {
+  display: block;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+h2 {
+  margin-top: 0;
+  font-size: 2rem;
+  letter-spacing: 1px;
+  color: #fda085;
+  text-shadow: 0 2px 8px rgba(253,160,133,0.08);
+}
+p {
+  font-size: 1.1rem;
+  color: #444;
+  margin-bottom: 0;
+}
+#widgets {
+  margin-bottom: 2rem;
+}
+.widget-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.widget {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1rem 1.2rem;
+  min-width: 180px;
+  max-width: 220px;
+  flex: 1 1 180px;
+  text-align: center;
+}
+.widget h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #fda085;
+}
+#progress-bar {
+  width: 100%;
+  height: 16px;
+  background: #f6d365;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  overflow: hidden;
+}
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #fda085;
+  border-radius: 8px;
+  transition: width 0.5s;
+}
+#progress-text {
+  font-size: 0.95rem;
+  color: #444;
+}
+#mini-calendar {
+  font-size: 0.95rem;
+  color: #444;
+  min-height: 40px;
+}
+#goals-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.95rem;
+  color: #444;
+}
+#goals-list li {
+  margin-bottom: 0.2rem;
+}
+.widget-btn {
+  background: #fda085;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0 0.5rem;
+  box-shadow: 0 2px 8px rgba(253,160,133,0.12);
+  transition: background 0.2s, color 0.2s;
+}
+.widget-btn:hover {
+  background: #f6d365;
+  color: #fda085;
+}
+#search-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+#search-input {
+  width: 320px;
+  max-width: 90vw;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  border: 1px solid #fda085;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+#tags-filter {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.5rem;
+}
+.tag-btn {
+  background: #f6d365;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.tag-btn.active, .tag-btn:hover {
+  background: #fda085;
+  color: #fff;
+}
+#voice-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+#voice-btn {
+  background: #fda085;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(253,160,133,0.12);
+  transition: background 0.2s, color 0.2s;
+}
+#voice-btn:hover {
+  background: #f6d365;
+  color: #fda085;
+}
+#voice-status {
+  font-size: 0.95rem;
+  color: #444;
+}
+@media (max-width: 900px) {
+  .widget-row { flex-direction: column; align-items: center; }
+  .widget { max-width: 98vw; }
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Мои Заметки</h1>
+    <button id="theme-toggle" title="Сменить тему">🌗</button>
+  </header>
+  <canvas id="bg-canvas"></canvas>
+  <nav class="tabs">
+    <button class="tab active" data-tab="notes">📝 Заметки</button>
+    <button class="tab" data-tab="finance">💰 Финансы</button>
+    <button class="tab" data-tab="movies">🎬 Кино</button>
+    <button class="tab" data-tab="workout">🏋️‍♂️ Тренировки</button>
+    <button class="tab" data-tab="other">✨ Другое</button>
+  </nav>
+  <main>
+    <section id="widgets">
+      <div class="widget-row">
+        <div class="widget" id="progress-widget">
+          <h3>Прогресс дня</h3>
+          <div id="progress-bar"><div id="progress-fill"></div></div>
+          <div id="progress-text">0/0 задач</div>
+        </div>
+        <div class="widget" id="calendar-widget">
+          <h3>Календарь</h3>
+          <div id="mini-calendar"></div>
+        </div>
+        <div class="widget" id="goals-widget">
+          <h3>Цели недели</h3>
+          <ul id="goals-list"></ul>
+        </div>
+      </div>
+      <div class="widget-row">
+        <button id="sync-btn" class="widget-btn">☁️ Синхронизация</button>
+        <button id="history-btn" class="widget-btn">🕒 История изменений</button>
+      </div>
+    </section>
+    <section id="search-section">
+      <input type="text" id="search-input" placeholder="Поиск по заметкам, задачам...">
+      <div id="tags-filter"></div>
+    </section>
+    <section id="voice-section">
+      <button id="voice-btn" title="Голосовой ввод">🎤 Добавить заметку голосом</button>
+      <span id="voice-status"></span>
+    </section>
+    <section class="tab-content active" id="notes">
+      <h2>Заметки</h2>
+      <p>Здесь вы можете хранить свои заметки, идеи и списки дел.</p>
+    </section>
+    <section class="tab-content" id="finance">
+      <h2>Финансы</h2>
+      <p>Управляйте своими расходами и доходами.</p>
+    </section>
+    <section class="tab-content" id="movies">
+      <h2>Кино</h2>
+      <p>Список фильмов для просмотра и ваши рецензии.</p>
+    </section>
+    <section class="tab-content" id="workout">
+      <h2>Тренировки</h2>
+      <p>Планируйте свои тренировки и отслеживайте прогресс.</p>
+    </section>
+    <section class="tab-content" id="other">
+      <h2>Другое</h2>
+      <p>Другие ваши интересы и хобби.</p>
+    </section>
+  </main>
+  <script>
+    // --- Демо-данные ---
+const notes = [
+  {id:1, text:'Купить хлеб', tags:['покупки','дом'], done:true, date:'2024-06-01'},
+  {id:2, text:'Сделать домашку по математике', tags:['учёба'], done:false, date:'2024-06-02'},
+  {id:3, text:'Пробежка 3 км', tags:['спорт','здоровье'], done:true, date:'2024-06-01'},
+  {id:4, text:'Позвонить маме', tags:['личное'], done:false, date:'2024-06-03'},
+  {id:5, text:'Прочитать книгу', tags:['развитие'], done:false, date:'2024-06-04'}
+];
+const goals = [
+  {text:'Заниматься спортом 3 раза', done:true},
+  {text:'Прочитать 2 главы книги', done:false},
+  {text:'Сделать 5 заметок', done:false}
+];
+const events = [
+  {date:'2024-06-01', text:'Встреча с другом'},
+  {date:'2024-06-03', text:'Дедлайн по проекту'}
+];
+// --- Виджеты ---
+function updateProgressWidget() {
+  const total = notes.length;
+  const done = notes.filter(n=>n.done).length;
+  document.getElementById('progress-text').textContent = `${done}/${total} задач`;
+  document.getElementById('progress-fill').style.width = total ? (done/total*100)+'%' : '0%';
+}
+function updateCalendarWidget() {
+  const cal = document.getElementById('mini-calendar');
+  const today = new Date();
+  let html = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(today); d.setDate(today.getDate()+i);
+    const dateStr = d.toISOString().slice(0,10);
+    const event = events.find(e=>e.date===dateStr);
+    html += `<div style="display:inline-block;width:38px;text-align:center;${event?'font-weight:bold;color:#fda085;':''}">${d.getDate()}.${d.getMonth()+1}${event?'<br>•':''}</div>`;
+  }
+  cal.innerHTML = html;
+}
+function updateGoalsWidget() {
+  const ul = document.getElementById('goals-list');
+  ul.innerHTML = goals.map(g=>`<li>${g.done?'✅':'⬜'} ${g.text}</li>`).join('');
+}
+// --- Поиск и теги ---
+function renderTags() {
+  const tags = Array.from(new Set(notes.flatMap(n=>n.tags)));
+  const container = document.getElementById('tags-filter');
+  container.innerHTML = tags.map(tag=>`<button class="tag-btn" data-tag="${tag}">${tag}</button>`).join('');
+}
+function filterNotes() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const activeTag = document.querySelector('.tag-btn.active')?.dataset.tag;
+  document.querySelectorAll('.tab-content').forEach(section=>{
+    if(section.id==='notes'){
+      let filtered = notes.filter(n=>n.text.toLowerCase().includes(q));
+      if(activeTag) filtered = filtered.filter(n=>n.tags.includes(activeTag));
+      section.innerHTML = `<h2>Заметки</h2>`+
+        (filtered.length ? '<ul>'+filtered.map(n=>`<li>${n.done?'✅':'⬜'} ${n.text} <span style='color:#aaa;font-size:0.9em'>[${n.tags.join(', ')}]</span></li>`).join('')+'</ul>' : '<p>Нет заметок</p>');
+    }
+    // Можно добавить аналогично для других вкладок
+  });
+}
+document.getElementById('search-input').addEventListener('input', filterNotes);
+document.getElementById('tags-filter').addEventListener('click',e=>{
+  if(e.target.classList.contains('tag-btn')){
+    document.querySelectorAll('.tag-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    filterNotes();
+  }
+});
+// --- Голосовой ввод ---
+const voiceBtn = document.getElementById('voice-btn');
+const voiceStatus = document.getElementById('voice-status');
+let recognition;
+if('webkitSpeechRecognition' in window || 'SpeechRecognition' in window){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ru-RU';
+  recognition.onstart = ()=>{voiceStatus.textContent='Говорите...';};
+  recognition.onend = ()=>{voiceStatus.textContent='';};
+  recognition.onerror = ()=>{voiceStatus.textContent='Ошибка распознавания';};
+  recognition.onresult = e=>{
+    const text = e.results[0][0].transcript;
+    notes.push({id:Date.now(), text, tags:[], done:false, date:new Date().toISOString().slice(0,10)});
+    filterNotes();
+    updateProgressWidget();
+    voiceStatus.textContent = 'Добавлено!';
+    setTimeout(()=>voiceStatus.textContent='',1500);
+  };
+  voiceBtn.onclick = ()=>recognition.start();
+}else{
+  voiceBtn.disabled = true;
+  voiceStatus.textContent = 'Голосовой ввод не поддерживается';
+}
+// --- Синхронизация и история (заглушки) ---
+document.getElementById('sync-btn').onclick = ()=>{
+  alert('Синхронизация доступна только при подключении к облаку. (Демо)');
+};
+document.getElementById('history-btn').onclick = ()=>{
+  alert('История изменений доступна только при подключении к серверу. (Демо)');
+};
+// --- Инициализация ---
+updateProgressWidget();
+updateCalendarWidget();
+updateGoalsWidget();
+renderTags();
+filterNotes();
+  </script>
+</body>
+</html>

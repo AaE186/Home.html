@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+<title>Календарь</title>
+<style>
+  /* Стили для меню */
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      float: left;
+    }
+
+    nav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    nav li a:hover {
+      background-color: #111;
+    }
+
+    /* Для активного пункта меню */
+    .active {
+      background-color: #4CAF50;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+  /* Основной контент */
+  .main-content {
+    padding: 20px;
+    box-sizing: border-box;
+    height: calc(100vh - 50px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: margin-left 0.3s ease;
+    margin-left: 0;
+  }
+
+  .main-content.shifted {
+    margin-left: 220px;
+  }
+
+  h1 {
+    margin: 0 0 10px 0;
+    text-align: center;
+  }
+
+  /* Календарь */
+  .calendar {
+    margin-top: 10px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.1);
+    padding: 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .calendar-header button {
+    background: #0078d7;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .calendar-header button:hover {
+    background: #005ea2;
+  }
+
+  .month-year {
+    font-size: 1.4em;
+    font-weight: 700;
+  }
+
+  .weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #eaeaea;
+    padding: 8px 0;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 5px;
+    user-select: none;
+  }
+
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 5px; /* для скролла */
+  }
+
+  .day {
+    background: #fefefe;
+    border-radius: 8px;
+    min-height: 100px;
+    max-height: 140px;
+    padding: 8px;
+    box-shadow: 0 3px 6px rgb(0 0 0 / 0.05);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .day.other-month {
+    color: #bbb;
+    background: #fafafa;
+    cursor: default;
+  }
+
+  .day-number {
+    font-weight: 700;
+    margin-bottom: 5px;
+    flex-shrink: 0;
+  }
+
+  .tasks {
+    flex-grow: 1;
+    overflow-y: auto;
+    font-size: 0.85em;
+  }
+
+  .task {
+    background: #0078d7;
+    color: white;
+    padding: 2px 6px;
+    margin-bottom: 4px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+
+  .task:hover {
+    background: #005ea2;
+  }
+
+  .task button {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    margin-left: 8px;
+  }
+
+  /* Модальное окно */
+  .modal-bg {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.3);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+  }
+
+  .modal-bg.active {
+    display: flex;
+  }
+
+  .modal {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    width: 320px;
+    max-width: 90vw;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.2);
+  }
+
+  .modal h2 {
+    margin-top: 0;
+  }
+
+  .modal textarea {
+    width: 100%;
+    min-height: 70px;
+    margin-bottom: 15px;
+    font-size: 1em;
+    padding: 8px;
+    resize: vertical;
+  }
+
+  .modal button {
+    background: #0078d7;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-right: 10px;
+  }
+
+  .modal button.cancel {
+    background: #ccc;
+    color: #333;
+  }
+
+  .modal button.cancel:hover {
+    background: #aaa;
+  }
+
+  .modal button:hover {
+    background: #005ea2;
+  }
+
+  /* Чат-бот */
+  .chatbot {
+    background: #fff;
+    border-top: 1px solid #ddd;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 -4px 10px rgb(0 0 0 / 0.05);
+  }
+
+  .chatbot input {
+    flex-grow: 1;
+    padding: 8px 12px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 1em;
+  }
+
+  .chatbot button {
+    background: #0078d7;
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .chatbot button:hover {
+    background: #005ea2;
+  }
+
+  /* Сообщение об ошибке */
+  .error-message {
+    color: red;
+    font-size: 0.9em;
+    min-width: 200px;
+  }
+</style>
+</head>
+<body>
+   <nav>
+    <ul>
+      <li><a href="Главная" target="_self"><i class="fa-solid fa-house"></i></a></li>
+      <li><a href="Зам" target="_self">Заметки</a></li>
+      <li><a href="Финансы" target="_self">Финансы</a></li>
+      <li><a href="Трен" target="_self">Тренировка</a></li>
+      <li><a href="Календарь" target="_self">Календарь</a></li>
+      <li><a href="Фильмы" target="_self">Фильмы</a></li>
+      <li><a href="Пробник2" target="_self">Пробник2</a></li>
+      <li><a href="бднов" target="_self">БД</a></li>
+    </ul>
+  </nav>
+  <div class="main-content" id="mainContent">
+    <h1>Календарь дел</h1>
+
+    <div class="calendar">
+      <div class="calendar-header">
+        <button id="prevMonth">&lt;</button>
+        <div class="month-year" id="monthYear"></div>
+        <button id="nextMonth">&gt;</button>
+      </div>
+      <div class="weekdays">
+        <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+      </div>
+      <div class="days" id="daysGrid"></div>
+    </div>
+  </div>
+
+  <!-- Модальное окно -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h2 id="modalTitle">Добавить дело</h2>
+      <textarea id="taskInput" placeholder="Введите описание дела..."></textarea>
+      <div>
+        <button id="saveTaskBtn">Сохранить</button>
+        <button class="cancel" id="cancelBtn">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Чат-бот -->
+  <div class="chatbot">
+    <input type="text" id="chatInput" placeholder="Например: 22 мая 2025 футбол в 18:00" />
+    <button id="chatSendBtn">Добавить</button>
+    <div class="error-message" id="chatError"></div>
+  </div>
+
+<script>
+  const daysGrid = document.getElementById('daysGrid');
+  const monthYear = document.getElementById('monthYear');
+  const prevMonthBtn = document.getElementById('prevMonth');
+  const nextMonthBtn = document.getElementById('nextMonth');
+
+  const modalBg = document.getElementById('modalBg');
+  const modalTitle = document.getElementById('modalTitle');
+  const taskInput = document.getElementById('taskInput');
+  const saveTaskBtn = document.getElementById('saveTaskBtn');
+  const cancelBtn = document.getElementById('cancelBtn');
+
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatError = document.getElementById('chatError');
+
+  let currentDate = new Date();
+  let tasks = JSON.parse(localStorage.getItem('tasks') || '{}');
+  let selectedDay = null;
+  let editTaskIndex = null;
+
+  // Сохранение задач в localStorage
+  function saveTasks() {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+  }
+
+  // Названия месяцев
+  const monthsNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+
+  // Генерация календаря
+  function generateCalendar(date) {
+    daysGrid.innerHTML = '';
+    const year = date.getFullYear();
+    const month = date.getMonth();
+
+    monthYear.textContent = monthsNames[month] + ' ' + year;
+
+    // Первый день месяца
+    let firstDay = new Date(year, month, 1);
+    let startDayOfWeek = firstDay.getDay();
+    startDayOfWeek = startDayOfWeek === 0 ? 7 : startDayOfWeek;
+
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+    const totalCells = 42;
+
+    for (let i = 1; i <= totalCells; i++) {
+      const dayDiv = document.createElement('div');
+      dayDiv.classList.add('day');
+
+      let dayNum = 0;
+      let dayDate = null;
+      let isOtherMonth = false;
+
+      if (i < startDayOfWeek) {
+        dayNum = daysInPrevMonth - (startDayOfWeek - i) + 1;
+        isOtherMonth = true;
+        dayDate = new Date(year, month - 1, dayNum);
+      } else if (i >= startDayOfWeek && i < startDayOfWeek + daysInMonth) {
+        dayNum = i - startDayOfWeek + 1;
+        dayDate = new Date(year, month, dayNum);
+      } else {
+        dayNum = i - (startDayOfWeek + daysInMonth) + 1;
+        isOtherMonth = true;
+        dayDate = new Date(year, month + 1, dayNum);
+      }
+
+      dayDiv.classList.toggle('other-month', isOtherMonth);
+      const dateKey = dayDate.toISOString().slice(0,10);
+      dayDiv.dataset.date = dateKey;
+
+      // Номер дня
+      const dayNumberDiv = document.createElement('div');
+      dayNumberDiv.classList.add('day-number');
+      dayNumberDiv.textContent = dayNum;
+      dayDiv.appendChild(dayNumberDiv);
+
+      // Задачи на этот день
+      const tasksDiv = document.createElement('div');
+      tasksDiv.classList.add('tasks');
+
+      if (tasks[dateKey]) {
+        tasks[dateKey].forEach((taskText, idx) => {
+          const taskDiv = document.createElement('div');
+          taskDiv.classList.add('task');
+          taskDiv.textContent = taskText;
+
+          // Кнопка удаления
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '×';
+          delBtn.title = 'Удалить';
+          delBtn.onclick = (e) => {
+            e.stopPropagation();
+            tasks[dateKey].splice(idx, 1);
+            if (tasks[dateKey].length === 0) delete tasks[dateKey];
+            saveTasks();
+            generateCalendar(currentDate);
+          };
+
+          taskDiv.appendChild(delBtn);
+
+          // Клик по задаче — редактирование
+          taskDiv.onclick = (e) => {
+            e.stopPropagation();
+            selectedDay = dateKey;
+            editTaskIndex = idx;
+            openModal('Редактировать дело на ' + dateKey, taskText);
+          };
+
+          tasksDiv.appendChild(taskDiv);
+        });
+      }
+
+      dayDiv.appendChild(tasksDiv);
+
+      // Клик по дню — добавление нового дела (только для текущего месяца)
+      if (!isOtherMonth) {
+        dayDiv.onclick = () => {
+          selectedDay = dateKey;
+          editTaskIndex = null;
+          openModal('Добавить дело на ' + dateKey, '');
+        };
+      }
+
+      daysGrid.appendChild(dayDiv);
+    }
+  }
+
+  function openModal(title, text = '') {
+    modalTitle.textContent = title;
+    taskInput.value = text;
+    modalBg.classList.add('active');
+    taskInput.focus();
+  }
+
+  function closeModal() {
+    modalBg.classList.remove('active');
+    editTaskIndex = null;
+  }
+
+  saveTaskBtn.onclick = () => {
+    const text = taskInput.value.trim();
+    if (text.length === 0) {
+      alert('Описание дела не может быть пустым');
+      return;
+    }
+
+    if (!tasks[selectedDay]) tasks[selectedDay] = [];
+
+    if (editTaskIndex !== null) {
+      // Редактируем задачу
+      tasks[selectedDay][editTaskIndex] = text;
+    } else {
+      // Добавляем новую
+      tasks[selectedDay].push(text);
+    }
+    saveTasks();
+    generateCalendar(currentDate);
+    closeModal();
+  };
+
+  cancelBtn.onclick = () => {
+    closeModal();
+  };
+
+  prevMonthBtn.onclick = () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    generateCalendar(currentDate);
+  };
+
+  nextMonthBtn.onclick = () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    generateCalendar(currentDate);
+  };
+
+  // Функция парсинга дат с поддержкой "25 мая 2025", "25.05.2025", "25.05" и т.п.
+  function parseDateRussian(text) {
+    const monthsMap = {
+      'января': 0, 'февраля': 1, 'марта': 2, 'апреля': 3, 'мая': 4, 'июня': 5,
+      'июля': 6, 'августа': 7, 'сентября': 8, 'октября': 9, 'ноября': 10, 'декабря': 11
+    };
+
+    // Проверка формата "дд.мм.гггг" или "дд.мм"
+    const dotDateRegex = /^(\d{1,2})\.(\d{1,2})(?:\.(\d{4}))?/;
+    let match = text.match(dotDateRegex);
+    if (match) {
+      let day = parseInt(match[1], 10);
+      let month = parseInt(match[2], 10) - 1;
+      let year = match[3] ? parseInt(match[3], 10) : (new Date()).getFullYear();
+
+      if (day < 1 || day > 31 || month < 0 || month > 11) return null;
+
+      const dateObj = new Date(year, month, day);
+      if (dateObj.getDate() !== day || dateObj.getMonth() !== month) return null;
+      return dateObj;
+    }
+
+    // Проверка формата "дд месяц(я) [год]"
+    const russianDateRegex = /(\d{1,2})\s(января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s(\d{4}))?/i;
+    match = text.match(russianDateRegex);
+    if (!match) return null;
+
+    let day = parseInt(match[1], 10);
+    let month = monthsMap[match[2].toLowerCase()];
+    let year = match[3] ? parseInt(match[3], 10) : (new Date()).getFullYear();
+
+    if (day < 1 || day > 31 || month < 0 || month > 11) return null;
+
+    const dateObj = new Date(year, month, day);
+    if (dateObj.getDate() !== day || dateObj.getMonth() !== month) return null;
+
+    return dateObj;
+  }
+
+  chatSendBtn.onclick = () => {
+    chatError.textContent = '';
+    const inputText = chatInput.value.trim();
+    if (!inputText) return;
+
+    const dateObj = parseDateRussian(inputText);
+    if (!dateObj) {
+      chatError.textContent = 'Ошибка: не удалось распознать дату. Формат: "22 мая 2025 ..." или "25.05[.2025]"';
+      return;
+    }
+
+    // Извлечь описание — всё после даты
+    const datePartRegex = /^(\d{1,2}\s(?:января|февраля|марта|апреля|мая|июня|июля|августа|сентября|октября|ноября|декабря)(?:\s\d{4})?|\d{1,2}\.\d{1,2}(?:\.\d{4})?)(.*)$/i;
+    const match = inputText.match(datePartRegex);
+    let description = '';
+    if (match) {
+      description = match[2].trim();
+    }
+
+    if (!description) {
+      chatError.textContent = 'Ошибка: нет описания задачи после даты.';
+      return;
+    }
+
+    const dateKey = dateObj.toISOString().slice(0,10);
+    if (!tasks[dateKey]) tasks[dateKey] = [];
+    tasks[dateKey].push(description);
+    saveTasks();
+
+    // Если добавленная задача в текущем месяце, обновить календарь
+    if (dateObj.getMonth() === currentDate.getMonth() && dateObj.getFullYear() === currentDate.getFullYear()) {
+      generateCalendar(currentDate);
+    }
+
+    chatInput.value = '';
+  };
+
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      chatSendBtn.click();
+      e.preventDefault();
+    }
+  });
+
+  generateCalendar(currentDate);
+</script>
+</body>
+</html>

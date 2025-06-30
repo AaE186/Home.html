@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Трекер тренировок</title>
+  <style>
+    /* Стили для меню */
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      float: left;
+    }
+
+    nav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    nav li a:hover {
+      background-color: #111;
+    }
+
+    /* Для активного пункта меню */
+    .active {
+      background-color: #4CAF50;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 40px auto;
+  max-width: 1000px;
+  padding: 0 20px;
+  background: #f5f7fa;
+  color: #333;
+}
+
+h1, h2, h3 {
+  color: #1f2937;
+}
+
+h2 {
+  margin-top: 40px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 6px;
+}
+
+.exercise-item, .workout-item, .approach-item {
+  border: 1px solid #e5e7eb;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+button {
+  cursor: pointer;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  transition: background-color 0.2s ease;
+  font-weight: 500;
+}
+
+button:hover {
+  background-color: #2563eb;
+}
+
+button:disabled {
+  background-color: #94a3b8;
+  cursor: default;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 6px;
+  margin-bottom: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-top: 10px;
+}
+
+.filter-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+#workout-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#workout-modal .modal-content {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.workout-header button {
+  margin-left: 6px;
+  background: #ef4444;
+}
+
+.workout-header button.edit-btn {
+  background: #10b981;
+}
+
+.workout-header button:hover {
+  opacity: 0.9;
+}
+
+.approach-list {
+  margin-top: 10px;
+}
+
+.approach-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9fafb;
+  padding: 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.approach-item button {
+  background: #ef4444;
+}
+
+canvas {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+input[type="date"] {
+  max-width: 200px;
+}
+
+  </style>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+</head>
+<body>
+   <nav>
+    <ul>
+      <li><a href="Главная" target="_self"><i class="fa-solid fa-house"></i></a></li>
+      <li><a href="Зам" target="_self">Заметки</a></li>
+      <li><a href="Финансы" target="_self">Финансы</a></li>
+      <li><a href="Трен" target="_self">Тренировка</a></li>
+      <li><a href="Календарь" target="_self">Календарь</a></li>
+      <li><a href="Фильмы" target="_self">Фильмы</a></li>
+      <li><a href="Пробник2" target="_self">Пробник2</a></li>
+      <li><a href="бднов" target="_self">БД</a></li>
+        </ol>
+    </ul>
+  </nav>
+  <h1>Трекер тренировок</h1>
+
+  <section>
+    <h2>Упражнения</h2>
+    <div id="exercises-container"></div>
+    <input type="text" id="new-exercise-name" placeholder="Новое упражнение" />
+    <button onclick="addExercise()">Добавить упражнение</button>
+  </section>
+
+  <section>
+    <h2>Фильтр тренировок</h2>
+    <div class="filter-row">
+      <label>По упражнению:
+        <select id="filter-exercise" onchange="renderWorkouts()">
+          <option value="">Все</option>
+        </select>
+      </label>
+    </div>
+    <div class="filter-row">
+      <label>Дата с:
+        <input type="date" id="filter-date-from" onchange="renderWorkouts()" />
+      </label>
+    </div>
+    <div class="filter-row">
+      <label>Дата по:
+        <input type="date" id="filter-date-to" onchange="renderWorkouts()" />
+      </label>
+    </div>
+    <button onclick="clearFilters()">Сбросить фильтры</button>
+  </section>
+
+  <section>
+    <h2>Тренировки <button onclick="openAddWorkoutModal()">Добавить тренировку</button></h2>
+    <div id="workouts-container"></div>
+  </section>
+
+  <section>
+    <h2>График прогресса</h2>
+    <label>Выберите упражнение:
+      <select id="chart-exercise" onchange="drawChart()">
+      </select>
+    </label>
+    <canvas id="progress-chart" width="800" height="400" style="margin-top: 20px; border: 1px solid #ccc;"></canvas>
+  </section>
+
+  <!-- Модальное окно добавления/редактирования тренировки -->
+  <div id="workout-modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Добавить тренировку</h3>
+      <label>Дата:
+        <input type="date" id="workout-date" />
+      </label>
+      <label>Упражнение:
+        <select id="workout-exercise"></select>
+      </label>
+      <label>Вес (кг):
+        <input type="number" id="approach-weight" min="0" step="0.1" />
+      </label>
+      <label>Повторы (например, 4x10 или 4 по 10):
+        <input type="text" id="approach-reps" />
+      </label>
+      <label>Комментарий:
+        <textarea id="approach-comment" rows="2"></textarea>
+      </label>
+      <button onclick="addApproach()">Добавить подход</button>
+
+      <div class="approach-list" id="approach-list"></div>
+
+      <button onclick="saveWorkout()" style="margin-top:10px;">Сохранить тренировку</button>
+      <button onclick="closeAddWorkoutModal()" style="margin-top:10px;">Отмена</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Данные
+    let exercises = JSON.parse(localStorage.getItem('exercises') || '[]');
+    let workouts = JSON.parse(localStorage.getItem('workouts') || '[]');
+
+    let editingIndex = -1; // индекс редактируемой тренировки
+    let currentWorkout = { date: '', approaches: [] };
+
+    function saveData() {
+      localStorage.setItem('exercises', JSON.stringify(exercises));
+      localStorage.setItem('workouts', JSON.stringify(workouts));
+    }
+
+    // --- Управление упражнениями ---
+
+    function renderExercises() {
+      const container = document.getElementById('exercises-container');
+      container.innerHTML = '';
+      exercises.forEach((ex, i) => {
+        const div = document.createElement('div');
+        div.className = 'exercise-item';
+        div.textContent = ex.name;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Удалить';
+        delBtn.onclick = () => {
+          if(confirm('Удалить упражнение?')) {
+            deleteExercise(i);
+          }
+        };
+        div.appendChild(delBtn);
+        container.appendChild(div);
+      });
+      renderFilterOptions();
+      renderWorkoutExerciseOptions();
+      renderChartOptions();
+    }
+
+    function addExercise() {
+      const nameInput = document.getElementById('new-exercise-name');
+      const name = nameInput.value.trim();
+      if (!name) return alert('Введите название упражнения');
+      exercises.push({ name });
+      nameInput.value = '';
+      saveData();
+      renderExercises();
+    }
+
+    function deleteExercise(index) {
+      exercises.splice(index, 1);
+      // Удаляем все подходы с этим упражнением
+      workouts.forEach(workout => {
+        workout.approaches = workout.approaches.filter(a => a.exercise !== index);
+        // Сдвигаем индексы упражнений после удалённого
+        workout.approaches.forEach(app => {
+          if (app.exercise > index) app.exercise--;
+        });
+      });
+      saveData();
+      renderExercises();
+      renderWorkouts();
+      drawChart();
+    }
+
+    // --- Фильтр ---
+
+    function renderFilterOptions() {
+      const select = document.getElementById('filter-exercise');
+      const selected = select.value;
+      select.innerHTML = '<option value="">Все</option>';
+      exercises.forEach((ex, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = ex.name;
+        select.appendChild(option);
+      });
+      select.value = selected;
+    }
+
+    function clearFilters() {
+      document.getElementById('filter-exercise').value = '';
+      document.getElementById('filter-date-from').value = '';
+      document.getElementById('filter-date-to').value = '';
+      renderWorkouts();
+    }
+
+    // --- Управление тренировками ---
+
+    function renderWorkouts() {
+      const container = document.getElementById('workouts-container');
+      container.innerHTML = '';
+
+      // Фильтрация
+      const filterExercise = document.getElementById('filter-exercise').value;
+      const filterDateFrom = document.getElementById('filter-date-from').value;
+      const filterDateTo = document.getElementById('filter-date-to').value;
+
+      let filtered = workouts;
+
+      if (filterExercise !== '') {
+        filtered = filtered.filter(w => w.approaches.some(a => a.exercise == filterExercise));
+      }
+      if (filterDateFrom) {
+        filtered = filtered.filter(w => w.date >= filterDateFrom);
+      }
+      if (filterDateTo) {
+        filtered = filtered.filter(w => w.date <= filterDateTo);
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<p>Тренировок не найдено.</p>';
+        return;
+      }
+
+      filtered.forEach((workout, i) => {
+        const div = document.createElement('div');
+        div.className = 'workout-item';
+        div.innerHTML = `
+          <div class="workout-header">
+            <strong>${workout.date}</strong>
+            <div>
+              <button class="edit-btn" onclick="editWorkout(${i})" title="Редактировать">&#9998;</button>
+              <button onclick="deleteWorkout(${i})" title="Удалить тренировку">&times;</button>
+            </div>
+          </div>
+          <div class="approach-list">
+            ${workout.approaches.map((app, idx) => `
+              <div class="approach-item">
+                <span>Упражнение: ${exercises[app.exercise]?.name || 'Неизвестное'}, Вес: ${app.weight} кг, Повторы: ${app.reps}${app.comment ? ', Комментарий: ' + app.comment : ''}</span>
+                <button onclick="deleteApproach(${i}, ${idx})" title="Удалить подход">&times;</button>
+              </div>
+            `).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function deleteApproach(workoutIndex, approachIndex) {
+      if (!confirm('Удалить подход?')) return;
+      workouts[workoutIndex].approaches.splice(approachIndex, 1);
+      if (workouts[workoutIndex].approaches.length === 0) {
+        if (confirm('Подходов не осталось, удалить тренировку?')) {
+          deleteWorkout(workoutIndex);
+          return;
+        }
+      }
+      saveData();
+      renderWorkouts();
+      drawChart();
+    }
+
+    function deleteWorkout(index) {
+      if (!confirm('Удалить тренировку?')) return;
+      workouts.splice(index, 1);
+      saveData();
+      renderWorkouts();
+      drawChart();
+    }
+
+    function openAddWorkoutModal() {
+      editingIndex = -1;
+      currentWorkout = { date: '', approaches: [] };
+      document.getElementById('modal-title').textContent = 'Добавить тренировку';
+      document.getElementById('workout-date').value = '';
+      clearApproachFields();
+      renderCurrentApproaches();
+      document.getElementById('workout-modal').style.display = 'flex';
+    }
+
+    function editWorkout(index) {
+      editingIndex = index;
+      currentWorkout = JSON.parse(JSON.stringify(workouts[index])); // глубокое копирование
+      document.getElementById('modal-title').textContent = 'Редактировать тренировку';
+      document.getElementById('workout-date').value = currentWorkout.date || '';
+      clearApproachFields();
+      renderCurrentApproaches();
+      document.getElementById('workout-modal').style.display = 'flex';
+    }
+
+    function addApproach() {
+      const date = document.getElementById('workout-date').value;
+      const exerciseIndex = document.getElementById('workout-exercise').value;
+      const weight = parseFloat(document.getElementById('approach-weight').value);
+      const reps = document.getElementById('approach-reps').value.trim();
+      const comment = document.getElementById('approach-comment').value.trim();
+
+      if (!date) return alert('Выберите дату тренировки');
+      if (exerciseIndex === '') return alert('Выберите упражнение');
+      if (isNaN(weight) || weight <= 0) return alert('Введите корректный вес');
+      if (!reps) return alert('Введите количество повторов (например, 4x10 или 4 по 10)');
+
+      currentWorkout.date = date;
+      currentWorkout.approaches.push({
+        exercise: parseInt(exerciseIndex),
+        weight,
+        reps,
+        comment
+      });
+      renderCurrentApproaches();
+      clearApproachFields();
+    }
+
+    function renderCurrentApproaches() {
+      const container = document.getElementById('approach-list');
+      container.innerHTML = '';
+      currentWorkout.approaches.forEach((app, i) => {
+        const div = document.createElement('div');
+        div.className = 'approach-item';
+        div.innerHTML = `
+          <span>Упражнение: ${exercises[app.exercise]?.name || 'Неизвестное'}, Вес: ${app.weight} кг, Повторы: ${app.reps}${app.comment ? ', Комментарий: ' + app.comment : ''}</span>
+          <button onclick="deleteApproachCurrent(${i})" title="Удалить подход">&times;</button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function deleteApproachCurrent(approachIndex) {
+      currentWorkout.approaches.splice(approachIndex, 1);
+      renderCurrentApproaches();
+    }
+
+    function clearApproachFields() {
+      document.getElementById('approach-weight').value = '';
+      document.getElementById('approach-reps').value = '';
+      document.getElementById('approach-comment').value = '';
+    }
+
+    function saveWorkout() {
+      if (!currentWorkout.date) return alert('Выберите дату тренировки');
+      if (currentWorkout.approaches.length === 0) return alert('Добавьте хотя бы один подход');
+      if (editingIndex === -1) {
+        workouts.push(currentWorkout);
+      } else {
+        workouts[editingIndex] = currentWorkout;
+      }
+      saveData();
+      closeAddWorkoutModal();
+      renderWorkouts();
+      drawChart();
+    }
+
+    function closeAddWorkoutModal() {
+      document.getElementById('workout-modal').style.display = 'none';
+    }
+
+    function renderWorkoutExerciseOptions() {
+      const select = document.getElementById('workout-exercise');
+      const selected = select.value;
+      select.innerHTML = '';
+      exercises.forEach((ex, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = ex.name;
+        select.appendChild(option);
+      });
+      select.value = selected;
+    }
+
+    // --- График ---
+
+    let chart = null;
+
+    function renderChartOptions() {
+      const select = document.getElementById('chart-exercise');
+      const selected = select.value;
+      select.innerHTML = '';
+      exercises.forEach((ex, i) => {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = ex.name;
+        select.appendChild(option);
+      });
+      // Выбираем первое упражнение по умолчанию, если нет выбранного
+      if (selected && [...select.options].some(o => o.value === selected)) {
+        select.value = selected;
+      } else if (exercises.length > 0) {
+        select.value = 0;
+      } else {
+        select.value = '';
+      }
+    }
+
+    function drawChart() {
+      const exerciseIndex = document.getElementById('chart-exercise').value;
+      console.log('drawChart: выбранное упражнение', exerciseIndex);
+      if (exerciseIndex === '') {
+        if (chart) {
+          chart.destroy();
+          chart = null;
+        }
+        return;
+      }
+
+      // Парсим повторы из строкового формата в общее количество повторений (4x10 -> 40)
+      function parseReps(repsStr) {
+        // Пример: "4x10", "4 по 10", "3x8"
+        let m = repsStr.match(/(\d+)\s*[xх*]\s*(\d+)/i);
+        if (m) {
+          return parseInt(m[1]) * parseInt(m[2]);
+        }
+        m = repsStr.match(/(\d+)\s*по\s*(\d+)/i);
+        if (m) {
+          return parseInt(m[1]) * parseInt(m[2]);
+        }
+        // Если только число
+        let n = parseInt(repsStr);
+        return isNaN(n) ? 0 : n;
+      }
+
+      const filteredApproaches = [];
+      workouts.forEach(w => {
+        w.approaches.forEach(a => {
+          if (a.exercise == exerciseIndex) {
+            filteredApproaches.push({
+              date: w.date,
+              weight: a.weight,
+              reps: parseReps(a.reps)
+            });
+          }
+        });
+      });
+
+      console.log('filteredApproaches:', filteredApproaches);
+
+      if (filteredApproaches.length === 0) {
+        if (chart) {
+          chart.destroy();
+          chart = null;
+        }
+        return;
+      }
+
+      // Группируем по дате (берём максимум веса и суммарные повторы)
+      const grouped = {};
+      filteredApproaches.forEach(a => {
+        if (!grouped[a.date]) {
+          grouped[a.date] = { weight: a.weight, reps: a.reps };
+        } else {
+          // Максимальный вес на дату
+          if (a.weight > grouped[a.date].weight) grouped[a.date].weight = a.weight;
+          // Сумма повторов
+          grouped[a.date].reps += a.reps;
+        }
+      });
+
+      // Сортируем по дате
+      const sortedDates = Object.keys(grouped).sort();
+
+      const weights = sortedDates.map(d => grouped[d].weight);
+      const reps = sortedDates.map(d => grouped[d].reps);
+
+      const ctx = document.getElementById('progress-chart').getContext('2d');
+      if (chart) chart.destroy();
+
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: sortedDates,
+          datasets: [
+            {
+              label: 'Вес (кг)',
+              data: weights,
+              borderColor: 'blue',
+              backgroundColor: 'rgba(0,0,255,0.1)',
+              yAxisID: 'y1',
+              tension: 0.3,
+              fill: true,
+            },
+            {
+              label: 'Повторы (суммарно)',
+              data: reps,
+              borderColor: 'green',
+              backgroundColor: 'rgba(0,255,0,0.1)',
+              yAxisID: 'y2',
+              tension: 0.3,
+              fill: true,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          stacked: false,
+          scales: {
+            y1: {
+              type: 'linear',
+              position: 'left',
+              title: {
+                display: true,
+                text: 'Вес (кг)'
+              },
+              beginAtZero: true,
+            },
+            y2: {
+              type: 'linear',
+              position: 'right',
+              title: {
+                display: true,
+                text: 'Повторы'
+              },
+              beginAtZero: true,
+              grid: {
+                drawOnChartArea: false
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Дата'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // --- Инициализация ---
+
+    function init() {
+      renderExercises();
+      renderWorkouts();
+      renderWorkoutExerciseOptions();
+      renderChartOptions();
+      drawChart();
+    }
+
+    window.onload = init;
+
+    function drawChart() {
+  const exerciseIndex = document.getElementById('chart-exercise').value;
+  if (exerciseIndex === '') {
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+    return;
+  }
+
+  function parseReps(repsStr) {
+    let m = repsStr.match(/(\d+)\s*[xх*]\s*(\d+)/i);
+    if (m) return parseInt(m[1]) * parseInt(m[2]);
+    m = repsStr.match(/(\d+)\s*по\s*(\d+)/i);
+    if (m) return parseInt(m[1]) * parseInt(m[2]);
+    let n = parseInt(repsStr);
+    return isNaN(n) ? 0 : n;
+  }
+
+  const filteredApproaches = [];
+  workouts.forEach(w => {
+    w.approaches.forEach(a => {
+      if (a.exercise == exerciseIndex) {
+        filteredApproaches.push({
+          date: w.date,
+          weight: a.weight,
+          reps: parseReps(a.reps)
+        });
+      }
+    });
+  });
+
+  if (filteredApproaches.length === 0) {
+    if (chart) {
+      chart.destroy();
+      chart = null;
+    }
+    return;
+  }
+
+  const grouped = {};
+  filteredApproaches.forEach(a => {
+    if (!grouped[a.date]) {
+      grouped[a.date] = { weight: a.weight, reps: a.reps };
+    } else {
+      if (a.weight > grouped[a.date].weight) grouped[a.date].weight = a.weight;
+      grouped[a.date].reps += a.reps;
+    }
+  });
+
+  const sortedDates = Object.keys(grouped).sort();
+  const weights = sortedDates.map(d => grouped[d].weight);
+  const reps = sortedDates.map(d => grouped[d].reps);
+
+  const ctx = document.getElementById('progress-chart').getContext('2d');
+
+  if (chart) chart.destroy(); // Удаляем старый график
+
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        {
+          label: 'Вес (кг)',
+          data: weights,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.2)',
+          yAxisID: 'y',
+        },
+        {
+          label: 'Повторы',
+          data: reps,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.2)',
+          yAxisID: 'y1',
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      stacked: false,
+      scales: {
+        y: {
+          type: 'linear',
+          display: true,
+          position: 'left',
+          title: { display: true, text: 'Вес (кг)' }
+        },
+        y1: {
+          type: 'linear',
+          display: true,
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          title: { display: true, text: 'Повторы' }
+        }
+      }
+    }
+  });
+}
+renderExercises();
+renderWorkouts();
+drawChart();
+
+  </script>
+
+</body>
+</html>

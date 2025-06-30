@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Учёт доходов и расходов</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+  <style>
+   /* Стили для меню */
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      float: left;
+    }
+
+    nav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    nav li a:hover {
+      background-color: #111;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    h2 {
+      text-align: center;
+    }
+    table {
+      font-size: 13px;
+      table-layout: fixed;
+      width: 100%;
+      word-wrap: break-word;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background: #fff;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px;
+      text-align: center;
+    }
+    th {
+      background: #eee;
+    }
+    input, select, button {
+      padding: 4px;
+      margin: 4px;
+      font-size: 13px;
+      max-width: 120px;
+    }
+    .form-row {
+      margin-bottom: 10px;
+    }
+    .month-header {
+      background: #ddd;
+      font-weight: bold;
+      text-align: left;
+      padding: 10px;
+    }
+    .category-check {
+      margin-top: 20px;
+    }
+    #chat-container {
+      margin-top: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      background: #fff;
+    }
+    #chat-messages {
+      height: 150px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      border: 1px solid #eee;
+      padding: 5px;
+    }
+    #chat-input {
+      width: 70%;
+      padding: 5px;
+    }
+    select.in-table {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 13px;
+    }
+    .daily-expense-check {
+      margin-top: 20px;
+      background: #fff;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+    .editable {
+      border: 1px solid #ddd;
+      padding: 2px;
+      min-width: 50px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Учёт доходов и расходов</h2>
+  <nav>
+    <ul>
+      <li><a href="Главная" target="_self"><i class="fa-solid fa-house"></i></a></li>
+      <li><a href="Зам" target="_self">Заметки</a></li>
+      <li><a href="Финансы" target="_self">Финансы</a></li>
+      <li><a href="Трен" target="_self">Тренировка</a></li>
+      <li><a href="Календарь" target="_self">Календарь</a></li>
+      <li><a href="Фильмы" target="_self">Фильмы</a></li>
+      <li><a href="Пробник2" target="_self">Пробник2</a></li>
+      <li><a href="бднов" target="_self">БД</a></li>
+    </ul>
+  </nav>
+  <div>
+    <button onclick="showTab('main')">Главная</button>
+    <button onclick="showTab('monthly')">Ежемесячные расходы</button>
+    <button onclick="showTab('subscriptions')">Подписки / Ежемесячные расходы</button>
+  </div>
+
+  <div id="main-tab">
+    <div class="form-row">
+      <input type="date" id="date" />
+      <input type="text" id="description" placeholder="Описание" />
+      <input type="number" id="amount" placeholder="Сумма" />
+      <select id="type">
+        <option value="Доход">Доход</option>
+        <option value="Расход">Расход</option>
+      </select>
+      <select id="category">
+        <option value="важное">важное</option>
+        <option value="сладкое">сладкое</option>
+        <option value="необязательное">необязательное</option>
+      </select>
+      <button onclick="addEntry()">Добавить</button>
+    </div>
+
+    <div id="chat-container">
+      <h3>Чат-бот для добавления записей</h3>
+      <div id="chat-messages"></div>
+      <input type="text" id="chat-input" placeholder="Например: 22 мая чипсы 100" />
+      <button onclick="processChatInput()">Отправить</button>
+    </div>
+
+    <div id="table-container"></div>
+
+    <div class="category-check">
+      <input type="text" id="sumCategory" placeholder="Введите категорию" />
+      <button onclick="calculateCategoryTotal()">Посчитать сумму по категории</button>
+      <div id="categoryTotal"></div>
+    </div>
+
+    <div class="daily-expense-check">
+      <input type="date" id="dailyDate" />
+      <button onclick="calculateDailyExpenses()">Показать расходы за день</button>
+      <div id="dailyExpensesOutput"></div>
+    </div>
+  </div>
+
+  <div id="monthly-tab" style="display: none;">
+    <h3>Ежемесячные расходы</h3>
+    <div id="monthly-expenses-container"></div>
+  </div>
+
+  <div id="subscriptions-tab" style="display: none;">
+    <h3>Подписки / Ежемесячные фиксированные расходы</h3>
+
+    <div class="form-row">
+      <input type="text" id="subName" placeholder="Название подписки" />
+      <input type="number" id="subAmount" placeholder="Сумма" />
+      <button onclick="addSubscription()">Добавить</button>
+    </div>
+
+    <div id="subscriptions-list"></div>
+  </div>
+
+  <script>
+    let records = JSON.parse(localStorage.getItem("records") || "[]");
+    let subscriptions = JSON.parse(localStorage.getItem("subscriptions")) || [];
+
+    function saveRecords() {
+      localStorage.setItem("records", JSON.stringify(records));
+    }
+
+    function saveSubscriptions() {
+      localStorage.setItem("subscriptions", JSON.stringify(subscriptions));
+    }
+
+    function addEntry() {
+      const date = document.getElementById("date").value;
+      const description = document.getElementById("description").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const type = document.getElementById("type").value;
+      const category = document.getElementById("category").value;
+
+      if (!date || !description || isNaN(amount)) {
+        alert("Пожалуйста, заполните все поля.");
+        return;
+      }
+
+      records.push({ date, description, amount, type, category });
+      saveRecords();
+      renderTable();
+      clearInputs();
+    }
+
+    function calculateDailyExpenses() {
+      const selectedDate = document.getElementById("dailyDate").value;
+      if (!selectedDate) {
+        alert("Пожалуйста, выберите дату.");
+        return;
+      }
+
+      const expenses = records.filter(r => r.date === selectedDate && r.type === "Расход");
+
+      if (expenses.length === 0) {
+        document.getElementById("dailyExpensesOutput").innerHTML = "Нет расходов на выбранную дату.";
+        return;
+      }
+
+      let total = 0;
+      let listHtml = "<ul>";
+      expenses.forEach(r => {
+        total += r.amount;
+        listHtml += `<li>${r.description} — ${r.amount.toFixed(2)} руб.</li>`;
+      });
+      listHtml += "</ul>";
+
+      document.getElementById("dailyExpensesOutput").innerHTML =
+        `<strong>Расходы за ${selectedDate}:</strong><br>${listHtml}<strong>Итого: ${total.toFixed(2)} руб.</strong>`;
+    }
+
+    function clearInputs() {
+      document.getElementById("date").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("amount").value = "";
+      document.getElementById("type").value = "Доход";
+      document.getElementById("category").value = "важное";
+    }
+
+    function groupByMonth(records) {
+      return records.reduce((acc, record) => {
+        const month = record.date.slice(0, 7);
+        acc[month] = acc[month] || [];
+        acc[month].push(record);
+        return acc;
+      }, {});
+    }
+
+    function renderTable() {
+      const container = document.getElementById("table-container");
+      container.innerHTML = "";
+      const grouped = groupByMonth(records);
+
+      Object.keys(grouped).sort().reverse().forEach(month => {
+        const section = document.createElement("div");
+        section.innerHTML = `<div class="month-header">${month}</div>`;
+
+        const table = document.createElement("table");
+        const rows = grouped[month].map((r, i) => {
+          const globalIndex = records.indexOf(r);
+          return `
+            <tr>
+              <td contenteditable onblur="editRecord(${globalIndex}, 'date', this.innerText)">${r.date}</td>
+              <td contenteditable onblur="editRecord(${globalIndex}, 'description', this.innerText)">${r.description}</td>
+              <td contenteditable onblur="editRecord(${globalIndex}, 'amount', this.innerText)">${r.amount.toFixed(2)}</td>
+              <td>
+                <select class="in-table" onchange="editRecord(${globalIndex}, 'type', this.value)">
+                  <option value="Доход" ${r.type === 'Доход' ? 'selected' : ''}>Доход</option>
+                  <option value="Расход" ${r.type === 'Расход' ? 'selected' : ''}>Расход</option>
+                </select>
+              </td>
+              <td>
+                <select class="in-table" onchange="editRecord(${globalIndex}, 'category', this.value)">
+                  <option value="важное" ${r.category === 'важное' ? 'selected' : ''}>важное</option>
+                  <option value="сладкое" ${r.category === 'сладкое' ? 'selected' : ''}>сладкое</option>
+                  <option value="необязательное" ${r.category === 'необязательное' ? 'selected' : ''}>необязательное</option>
+                </select>
+              </td>
+              <td><button onclick="deleteEntry(${globalIndex})">Удалить</button></td>
+            </tr>
+          `;
+        }).join("");
+
+        table.innerHTML = `
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Описание</th>
+              <th>Сумма</th>
+              <th>Тип</th>
+              <th>Категория</th>
+              <th>Действие</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        `;
+
+        section.appendChild(table);
+        container.appendChild(section);
+      });
+    }
+
+    function deleteEntry(index) {
+      if (confirm("Удалить эту запись?")) {
+        records.splice(index, 1);
+        saveRecords();
+        renderTable();
+      }
+    }
+
+    function editRecord(index, field, value) {
+      if (field === 'amount') {
+        value = parseFloat(value);
+        if (isNaN(value)) {
+          alert("Некорректная сумма");
+          return;
+        }
+      }
+      records[index][field] = value;
+      saveRecords();
+    }
+
+    function calculateCategoryTotal() {
+      const category = document.getElementById("sumCategory").value.trim().toLowerCase();
+      if (!category) return;
+
+      let total = 0;
+      records.forEach(r => {
+        if (r.category.toLowerCase() === category) {
+          total += r.type === 'Доход' ? r.amount : -r.amount;
+        }
+      });
+
+      const out = document.getElementById("categoryTotal");
+      out.textContent = `Итоговая сумма по категории "${category}": ${total.toFixed(2)} руб.`;
+    }
+
+    function addChatMessage(message, isUser = true) {
+      const chatMessages = document.getElementById("chat-messages");
+      const messageDiv = document.createElement("div");
+      messageDiv.style.textAlign = isUser ? "right" : "left";
+      messageDiv.style.margin = "5px";
+      messageDiv.style.padding = "5px";
+      messageDiv.style.backgroundColor = isUser ? "#e3f2fd" : "#f5f5f5";
+      messageDiv.style.borderRadius = "5px";
+      messageDiv.style.display = "inline-block";
+      messageDiv.textContent = message;
+      chatMessages.appendChild(messageDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function processChatInput() {
+      const input = document.getElementById("chat-input").value.trim();
+      if (!input) return;
+
+      addChatMessage(input, true);
+      document.getElementById("chat-input").value = "";
+
+      try {
+        const result = parseChatInput(input);
+        if (result) {
+          result.type = "Расход";
+          result.category = "важное";
+
+          records.push(result);
+          saveRecords();
+          renderTable();
+          addChatMessage(`Запись добавлена: ${result.date}, ${result.description}, ${result.amount} руб.`, false);
+        } else {
+          addChatMessage("Не удалось распознать запись. Пример формата: '22 мая чипсы 100'", false);
+        }
+      } catch (e) {
+        addChatMessage("Ошибка при обработке: " + e.message, false);
+      }
+    }
+
+    function parseChatInput(input) {
+      const parts = input.split(/\s+/);
+      if (parts.length < 3) return null;
+
+      let amount = 0;
+      let amountIndex = -1;
+      for (let i = parts.length - 1; i >= 0; i--) {
+        if (parts[i].match(/^\d+$/)) {
+          amount = parseFloat(parts[i]);
+          amountIndex = i;
+          break;
+        }
+      }
+      if (amountIndex === -1) return null;
+
+      const months = {
+        'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
+        'мая': '05', 'июня': '06', 'июля': '07', 'августа': '08',
+        'сентября': '09', 'октября': '10', 'ноября': '11', 'декабря': '12'
+      };
+
+      let dateStr = "";
+      let dateParts = [];
+      for (let i = 0; i < amountIndex; i++) {
+        if (parts[i].match(/^\d+$/) ||
+            parts[i].match(/^[а-я]+$/i) ||
+            (i > 0 && parts[i-1].match(/^\d+$/) && parts[i].match(/^[а-я]+$/i))) {
+          dateParts.push(parts[i]);
+        } else {
+          break;
+        }
+      }
+      dateStr = dateParts.join(" ");
+
+      const dateMatch = dateStr.match(/^(\d{1,2})\s+([а-я]+)/i);
+      if (!dateMatch) return null;
+
+      const day = dateMatch[1].padStart(2, '0');
+      const month = months[dateMatch[2].toLowerCase()];
+      if (!month) return null;
+
+      const currentYear = new Date().getFullYear();
+      const date = `${currentYear}-${month}-${day}`;
+
+      const descriptionStart = dateParts.length;
+      const descriptionEnd = amountIndex;
+      const description = parts.slice(descriptionStart, descriptionEnd).join(" ");
+
+      return {
+        date,
+        description,
+        amount
+      };
+    }
+
+    document.getElementById("chat-input").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") {
+        processChatInput();
+      }
+    });
+
+    function showTab(tab) {
+      document.getElementById("main-tab").style.display = (tab === 'main') ? 'block' : 'none';
+      document.getElementById("monthly-tab").style.display = (tab === 'monthly') ? 'block' : 'none';
+      document.getElementById("subscriptions-tab").style.display = (tab === 'subscriptions') ? 'block' : 'none';
+
+      if (tab === 'monthly') {
+        renderMonthlyExpenses();
+      } else if (tab === 'subscriptions') {
+        renderSubscriptions();
+      }
+    }
+
+    function renderMonthlyExpenses() {
+      const container = document.getElementById("monthly-expenses-container");
+      container.innerHTML = "";
+
+      const monthlyTotals = {};
+
+      records.forEach(r => {
+        if (r.type === "Расход") {
+          const month = r.date.slice(0, 7);
+          if (!monthlyTotals[month]) monthlyTotals[month] = 0;
+          monthlyTotals[month] += r.amount;
+        }
+      });
+
+      if (Object.keys(monthlyTotals).length === 0) {
+        container.innerHTML = "Нет данных о расходах.";
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Месяц</th>
+            <th>Общие расходы</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(monthlyTotals).sort().reverse().map(([month, total]) => `
+            <tr>
+              <td>${month}</td>
+              <td>${total.toFixed(2)} руб.</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      `;
+
+      container.appendChild(table);
+    }
+
+    function addSubscription() {
+      const name = document.getElementById("subName").value.trim();
+      const amount = parseFloat(document.getElementById("subAmount").value);
+
+      subscriptions.push({ name, amount});
+      saveSubscriptions();
+
+      document.getElementById("subName").value = "";
+      document.getElementById("subAmount").value = "";
+
+      renderSubscriptions();
+    }
+
+    function editSubscription(index, field, value) {
+      if (field === 'amount' || field === 'day') {
+        value = parseFloat(value);
+        if (isNaN(value)) {
+          alert("Некорректное значение");
+          return;
+        }
+        if (field === 'day' && (value < 1 || value > 31)) {
+          alert("День должен быть от 1 до 31");
+          return;
+        }
+      }
+
+      subscriptions[index][field] = value;
+      saveSubscriptions();
+      renderSubscriptions();
+    }
+
+    function deleteSubscription(index) {
+      if (confirm("Удалить эту подписку?")) {
+        subscriptions.splice(index, 1);
+        saveSubscriptions();
+        renderSubscriptions();
+      }
+    }
+
+    function renderSubscriptions() {
+      const container = document.getElementById("subscriptions-list");
+      if (subscriptions.length === 0) {
+        container.innerHTML = "<p>Нет сохранённых подписок.</p>";
+        return;
+      }
+
+      const table = document.createElement("table");
+      table.innerHTML = `
+        <thead>
+          <tr>
+            <th>Название</th>
+            <th>Сумма (руб.)</th>
+            <th>День месяца</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${subscriptions.map((sub, index) => `
+            <tr>
+              <td>
+                <div class="editable" contenteditable="true"
+                  onblur="editSubscription(${index}, 'name', this.innerText)">
+                  ${sub.name}
+                </div>
+              </td>
+              <td>
+                <div class="editable" contenteditable="true"
+                  onblur="editSubscription(${index}, 'amount', this.innerText)">
+                  ${sub.amount.toFixed(2)}
+                </div>
+              </td>
+              <td>
+                <div class="editable" contenteditable="true"
+                  onblur="editSubscription(${index}, 'day', this.innerText)">
+                  ${sub.day}
+                </div>
+              </td>
+              <td>
+                <button onclick="deleteSubscription(${index})">Удалить</button>
+              </td>
+            </tr>
+          `).join("")}
+        </tbody>
+      `;
+
+      container.innerHTML = "";
+      container.appendChild(table);
+    }
+
+    // Инициализация при загрузке
+    renderTable();
+    renderSubscriptions();
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<style>
+    /* Кнопка меню (гамбургер) */
+  #menuToggle {
+    width: 30px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  #menuToggle span {
+    display: block;
+    height: 4px;
+    background: black;
+    border-radius: 2px;
+  }
+
+  /* Боковое меню */
+  .sidebar {
+    position: fixed;
+    top: 50px; /* под top-bar */
+    left: 0;
+    height: calc(100vh - 50px);
+    width: 220px;
+    background-color: #0078d7;
+    color: white;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 15000;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .sidebar ul li {
+    margin-bottom: 15px;
+  }
+
+  .sidebar ul li a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+  }
+
+  .sidebar ul li a:hover {
+    text-decoration: underline;
+  }
+
+</style>
+
+<body>
+
+  <nav class="sidebar" id="sidebar">
+    <ul>
+      <li><a href="Главная" target="_self"><i class="fa-solid fa-house"></i> Главная</a></li>
+      <li><a href="Зам" target="_self"><i class="fa-solid fa-house"></i> Заметки</a></li>
+      <li><a href="Финансы" target="_self"><i class="fa-solid fa-house"></i> Финансы</a></li>
+      <li><a href="Трен" target="_self"><i class="fa-solid fa-house"></i> Тренировка</a></li>
+      <li><a href="Календарь" target="_self"><i class="fa-solid fa-house"></i> Календарь</a></li>
+      <li><a href="Фильмы" target="_self"><i class="fa-solid fa-house"></i> Фильмы</a></li>
+      <li><a href="Пробник2" target="_self"><i class="fa-solid fa-house"></i> Пробник2</a></li>
+      <li><a href="бднов" target="_self"><i class="fa-solid fa-house"></i> БД</a></li>
+    </ul>
+  </nav>
+
+</body>
+
+<scrypt>
+
+    const sidebar = document.getElementById('sidebar');
+  const menuToggle = document.getElementById('menuToggle');
+  const mainContent = document.getElementById('mainContent');
+
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    mainContent.classList.toggle('shifted');
+  });
+
+</scrypt>

@@ -1,0 +1,356 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Супер Заметки</title>
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.7.2/css/all.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  /* Стили для меню */
+    nav {
+      background-color: #333;
+      overflow: hidden;
+    }
+
+    nav ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    nav li {
+      float: left;
+    }
+
+    nav li a {
+      display: block;
+      color: white;
+      text-align: center;
+      padding: 14px 16px;
+      text-decoration: none;
+    }
+
+    nav li a:hover {
+      background-color: #111;
+    }
+
+    /* Для активного пункта меню */
+    .active {
+      background-color: #4CAF50;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      min-height: 100vh;
+      color: #333;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .todo-container {
+      background: #fff;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    input[type="text"] {
+      flex-grow: 1;
+      padding: 12px 16px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
+      transition: border-color 0.3s ease;
+    }
+    input[type="text"]:focus {
+      border-color: #3498db;
+      outline: none;
+    }
+
+    button.add-btn {
+      background-color: #3498db;
+      border: none;
+      color: white;
+      padding: 0 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button.add-btn:hover {
+      background-color: #2980b9;
+    }
+
+    ul.todo-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 360px;
+      overflow-y: auto;
+      border-top: 1px solid #ddd;
+    }
+
+    ul.todo-list::-webkit-scrollbar {
+      width: 8px;
+    }
+    ul.todo-list::-webkit-scrollbar-thumb {
+      background-color: rgba(52, 152, 219, 0.4);
+      border-radius: 8px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #eee;
+      transition: background-color 0.2s ease;
+    }
+    .todo-item.completed .text {
+      text-decoration: line-through;
+      color: #999;
+    }
+
+    .text {
+      flex-grow: 1;
+      font-size: 16px;
+      user-select: none;
+      cursor: pointer;
+      padding-right: 12px;
+    }
+    .text[contenteditable="true"] {
+      border-bottom: 1px dashed #3498db;
+      cursor: text;
+      user-select: text;
+      outline: none;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button.action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 18px;
+      color: #888;
+      transition: color 0.3s ease;
+      user-select: none;
+    }
+    button.action-btn:hover {
+      color: #3498db;
+    }
+
+    /* Анимация появления элемента */
+    .todo-item {
+      animation: fadeIn 0.3s ease forwards;
+      opacity: 0;
+    }
+    .todo-item.visible {
+      opacity: 1;
+    }
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    /* Мобильная адаптация */
+    @media (max-width: 520px) {
+      .todo-container {
+        width: 100%;
+        padding: 16px;
+      }
+      button.add-btn {
+        padding: 0 14px;
+      }
+    }
+
+ .columns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+  </style>
+</head>
+<body>
+   <nav>
+    <ul>
+      <li><a href="Главная" target="_self"><i class="fa-solid fa-house"></i></a></li>
+      <li><a href="Зам" target="_self">Заметки</a></li>
+      <li><a href="Финансы" target="_self">Финансы</a></li>
+      <li><a href="Трен" target="_self">Тренировка</a></li>
+      <li><a href="Календарь" target="_self">Календарь</a></li>
+      <li><a href="Фильмы" target="_self">Фильмы</a></li>
+      <li><a href="Пробник2" target="_self">Пробник2</a></li>
+      <li><a href="бднов" target="_self">БД</a></li>
+
+    </ul>
+  </nav>
+  <h1>Мои дела</h1>
+
+<div class="columns">
+
+  <!-- Левая колонка -->
+  <div class="todo-container" data-key="left">
+    <h2>Личное</h2>
+    <div class="input-group">
+      <input type="text" placeholder="Добавить заметку..." maxlength="100" />
+      <button class="add-btn">➕</button>
+    </div>
+    <ul class="todo-list"></ul>
+  </div>
+
+  <!-- Центральная колонка -->
+  <div class="todo-container" data-key="center">
+    <h2>Работа</h2>
+    <div class="input-group">
+      <input type="text" placeholder="Добавить заметку..." maxlength="100" />
+      <button class="add-btn">➕</button>
+    </div>
+    <ul class="todo-list"></ul>
+  </div>
+
+  <!-- Правая колонка -->
+  <div class="todo-container" data-key="right">
+    <h2>Другое</h2>
+    <div class="input-group">
+      <input type="text" placeholder="Добавить заметку..." maxlength="100" />
+      <button class="add-btn">➕</button>
+    </div>
+    <ul class="todo-list"></ul>
+  </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.todo-container').forEach(container => {
+  const input = container.querySelector('input');
+  const addBtn = container.querySelector('.add-btn');
+  const list = container.querySelector('.todo-list');
+  const key = container.dataset.key;
+
+  let todos = JSON.parse(localStorage.getItem('todos-' + key)) || [];
+
+  function saveAndRender() {
+    localStorage.setItem('todos-' + key, JSON.stringify(todos));
+    render();
+  }
+
+  function render() {
+    list.innerHTML = '';
+    todos.forEach((todo, index) => {
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (todo.completed ? ' completed' : '');
+      li.tabIndex = 0;
+
+      const textSpan = document.createElement('span');
+      textSpan.className = 'text';
+      textSpan.textContent = todo.text;
+      textSpan.title = "Дважды кликните для редактирования";
+
+      textSpan.addEventListener('dblclick', () => {
+        textSpan.contentEditable = true;
+        textSpan.focus();
+        document.execCommand('selectAll', false, null);
+      });
+
+      textSpan.addEventListener('blur', () => {
+        textSpan.contentEditable = false;
+        const newText = textSpan.textContent.trim();
+        if (newText === '') {
+          todos.splice(index, 1);
+        } else {
+          todos[index].text = newText;
+        }
+        saveAndRender();
+      });
+
+      textSpan.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          textSpan.blur();
+        }
+      });
+
+      const completeBtn = document.createElement('button');
+      completeBtn.className = 'action-btn';
+      completeBtn.title = todo.completed ? 'Отметить как невыполненное' : 'Отметить как выполненное';
+      completeBtn.innerHTML = todo.completed ? '✅' : '⬜️';
+      completeBtn.addEventListener('click', () => {
+        todos[index].completed = !todos[index].completed;
+        saveAndRender();
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'action-btn';
+      deleteBtn.title = 'Удалить дело';
+      deleteBtn.innerHTML = '🗑️';
+      deleteBtn.addEventListener('click', () => {
+        if (confirm('Удалить это дело?')) {
+          todos.splice(index, 1);
+          saveAndRender();
+        }
+      });
+
+      li.appendChild(completeBtn);
+      li.appendChild(textSpan);
+      li.appendChild(deleteBtn);
+      list.appendChild(li);
+
+      setTimeout(() => li.classList.add('visible'), 10);
+    });
+  }
+
+  addBtn.addEventListener('click', () => {
+    const val = input.value.trim();
+    if (val) {
+      todos.push({ text: val, completed: false });
+      input.value = '';
+      saveAndRender();
+      input.focus();
+    }
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      addBtn.click();
+    }
+  });
+
+  render();
+});
+</script>
+
+
+</body>
+</html>

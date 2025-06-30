@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой динамичный сайт</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --text: #222;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+    }
+    [data-theme='dark'] {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --text: #e0e0e0;
+      --accent: #818cf8;
+      --accent-hover: #6366f1;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      transition: all 0.3s;
+    }
+    header, footer {
+      background-color: var(--accent);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background-color: var(--card);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    nav a {
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: white;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    nav a:hover {
+      background: var(--accent-hover);
+    }
+    main {
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+    }
+    .card {
+      background-color: var(--card);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+    }
+    button {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: var(--accent-hover);
+    }
+    .timer {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+    .voice-list {
+      list-style: none;
+      padding: 0;
+    }
+    .voice-list li {
+      background: #eee;
+      margin: 0.3rem 0;
+      padding: 0.5rem;
+      border-radius: 4px;
+    }
+    select {
+      padding: 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Моя панель</h1>
+    <button id="theme-toggle">🌓</button>
+  </header>
+  <nav>
+    <a href="#">Главная</a>
+    <a href="#">Финансы</a>
+    <a href="#">Календарь</a>
+    <a href="#">Заметки</a>
+    <a href="#">Тренировки</a>
+    <a href="#">Фильмы</a>
+  </nav>
+  <main>
+    <div class="card">
+      <h3>Цитата дня</h3>
+      <p id="quote">Жми кнопку, чтобы получить вдохновение!</p>
+      <button onclick="newQuote()">Новая цитата</button>
+    </div>
+
+    <div class="card">
+      <h3>Финансовый график</h3>
+      <canvas id="financeChart"></canvas>
+    </div>
+
+    <div class="card">
+      <h3>Голосовые заметки</h3>
+      <button id="record-button">🎙 Начать</button>
+      <ul id="voice-notes" class="voice-list"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Помодоро</h3>
+      <div id="timer" class="timer">25:00</div>
+      <button id="start-timer">▶ Старт</button>
+      <button id="reset-timer">🔁 Сброс</button>
+    </div>
+
+    <div class="card">
+      <h3>Праздничное настроение</h3>
+      <button onclick="launchConfetti()">🎉 Конфетти</button>
+    </div>
+  </main>
+  <footer>
+    <span>© 2025</span>
+  </footer>
+  <script>
+    const quotes = [
+      "Каждый день — новая возможность.",
+      "Успех приходит к тем, кто действует.",
+      "Будь сильнее своих отговорок.",
+      "Лучший день — сегодня."
+    ];
+    function newQuote() {
+      document.getElementById('quote').textContent = quotes[Math.floor(Math.random()*quotes.length)];
+    }
+
+    const ctx = document.getElementById('financeChart').getContext('2d');
+    const financeChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'],
+        datasets: [{
+          label: 'Расходы',
+          data: [12, 19, 3, 5, 2, 3, 7],
+          backgroundColor: '#4f46e5'
+        }]
+      }
+    });
+
+    const timerDisplay = document.getElementById('timer');
+    const startBtn = document.getElementById('start-timer');
+    const resetBtn = document.getElementById('reset-timer');
+    let time = 25 * 60;
+    let interval;
+    function updateTimer() {
+      const m = String(Math.floor(time/60)).padStart(2,'0');
+      const s = String(time%60).padStart(2,'0');
+      timerDisplay.textContent = `${m}:${s}`;
+    }
+    startBtn.onclick = () => {
+      clearInterval(interval);
+      interval = setInterval(() => {
+        if (time > 0) {
+          time--;
+          updateTimer();
+        } else clearInterval(interval);
+      }, 1000);
+    };
+    resetBtn.onclick = () => {
+      clearInterval(interval);
+      time = 25 * 60;
+      updateTimer();
+    };
+    updateTimer();
+
+    let recognition;
+    if ('webkitSpeechRecognition' in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.lang = 'ru-RU';
+    }
+    const recordBtn = document.getElementById('record-button');
+    const notesList = document.getElementById('voice-notes');
+    recordBtn.onclick = () => {
+      if (!recognition) return alert('Не поддерживается');
+      recognition.start();
+    };
+    recognition && recognition.addEventListener('result', (e) => {
+      const text = Array.from(e.results).map(r => r[0].transcript).join('');
+      const li = document.createElement('li');
+      li.textContent = text;
+      notesList.appendChild(li);
+    });
+
+    function launchConfetti() {
+      for (let i = 0; i < 100; i++) {
+        const el = document.createElement('div');
+        el.style.position = 'fixed';
+        el.style.width = '8px';
+        el.style.height = '8px';
+        el.style.background = `hsl(${Math.random()*360},100%,60%)`;
+        el.style.top = Math.random() * window.innerHeight + 'px';
+        el.style.left = Math.random() * window.innerWidth + 'px';
+        el.style.borderRadius = '50%';
+        el.style.zIndex = '9999';
+        el.style.pointerEvents = 'none';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 1000);
+      }
+    }
+
+    const toggleBtn = document.getElementById('theme-toggle');
+    toggleBtn.onclick = () => {
+      const theme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+  </script>
+</body>
+</html>

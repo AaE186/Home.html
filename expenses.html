@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Учёт расходов</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Учёт расходов</div>
+    <a href="index.html" class="card-link" style="margin-bottom:1em;display:inline-block;">← Главное меню</a>
+    <form id="expense-form" class="auth-form" style="margin-bottom:2em;">
+      <input type="number" id="expense-amount" placeholder="Сумма" min="0" step="0.01" required>
+      <input type="text" id="expense-category" placeholder="Категория" required>
+      <input type="date" id="expense-date" required>
+      <input type="text" id="expense-comment" placeholder="Комментарий">
+      <button type="submit">Добавить расход</button>
+      <div class="error" id="expense-error"></div>
+    </form>
+    <div id="expenses-list"></div>
+  </div>
+  <script src="common.js"></script>
+  <script>
+    if (!getToken()) window.location.href = 'index.html';
+
+    async function loadExpenses() {
+      const res = await fetchWithAuth('/expenses');
+      const expenses = await res.json();
+      const list = document.getElementById('expenses-list');
+      if (!expenses.length) {
+        list.innerHTML = '<div style="color:#b8c1ec;">Нет расходов</div>';
+        return;
+      }
+      list.innerHTML = expenses.map(exp => `
+        <div class="card-link" style="text-align:left;position:relative;margin-bottom:0.7em;">
+          <b>${exp.amount.toFixed(2)} ₽</b> — <span>${exp.category}</span><br>
+          <span style="font-size:0.98em;">${exp.comment || ''}</span><br>
+          <span style="font-size:0.9em;color:#b8c1ec;">${new Date(exp.date).toLocaleDateString('ru-RU')}</span>
+          <button onclick="deleteExpense(${exp.id})" style="position:absolute;top:10px;right:10px;background:#ff6b6b;color:#fff;border:none;border-radius:0.7em;padding:0.3em 0.8em;cursor:pointer;">Удалить</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('expense-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const amount = parseFloat(document.getElementById('expense-amount').value);
+      const category = document.getElementById('expense-category').value.trim();
+      const date = document.getElementById('expense-date').value;
+      const comment = document.getElementById('expense-comment').value.trim();
+      const errorDiv = document.getElementById('expense-error');
+      errorDiv.textContent = '';
+      if (!amount || !category || !date) {
+        errorDiv.textContent = 'Заполните все обязательные поля';
+        return;
+      }
+      try {
+        await fetchWithAuth('/expenses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, category, date, comment })
+        });
+        document.getElementById('expense-form').reset();
+        loadExpenses();
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Ошибка добавления';
+      }
+    };
+
+    window.deleteExpense = async function(id) {
+      if (!confirm('Удалить расход?')) return;
+      await fetchWithAuth(`/expenses/${id}`, { method: 'DELETE' });
+      loadExpenses();
+    };
+
+    // Установить сегодняшнюю дату по умолчанию
+    document.getElementById('expense-date').value = new Date().toISOString().slice(0,10);
+    loadExpenses();
+  </script>
+</body>
+</html> 

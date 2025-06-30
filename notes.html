@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Заметки</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Заметки</div>
+    <a href="index.html" class="card-link" style="margin-bottom:1em;display:inline-block;">← Главное меню</a>
+    <form id="note-form" class="auth-form" style="margin-bottom:2em;">
+      <input type="text" id="note-title" placeholder="Заголовок" required>
+      <textarea id="note-content" placeholder="Текст заметки" required style="resize:vertical;min-height:60px;"></textarea>
+      <button type="submit">Добавить заметку</button>
+      <div class="error" id="note-error"></div>
+    </form>
+    <div id="notes-list"></div>
+  </div>
+  <script src="common.js"></script>
+  <script>
+    // Проверка авторизации
+    if (!getToken()) window.location.href = 'index.html';
+
+    async function loadNotes() {
+      const res = await fetchWithAuth('/notes');
+      const notes = await res.json();
+      const list = document.getElementById('notes-list');
+      if (!notes.length) {
+        list.innerHTML = '<div style="color:#b8c1ec;">Нет заметок</div>';
+        return;
+      }
+      list.innerHTML = notes.map(note => `
+        <div class="card-link" style="text-align:left;position:relative;margin-bottom:0.7em;">
+          <b>${note.title}</b><br>
+          <span style="font-size:0.98em;">${note.content}</span><br>
+          <span style="font-size:0.9em;color:#b8c1ec;">${new Date(note.created_at).toLocaleString('ru-RU')}</span>
+          <button onclick="deleteNote(${note.id})" style="position:absolute;top:10px;right:10px;background:#ff6b6b;color:#fff;border:none;border-radius:0.7em;padding:0.3em 0.8em;cursor:pointer;">Удалить</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('note-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const title = document.getElementById('note-title').value.trim();
+      const content = document.getElementById('note-content').value.trim();
+      const errorDiv = document.getElementById('note-error');
+      errorDiv.textContent = '';
+      if (!title || !content) {
+        errorDiv.textContent = 'Заполните все поля';
+        return;
+      }
+      try {
+        await fetchWithAuth('/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content })
+        });
+        document.getElementById('note-title').value = '';
+        document.getElementById('note-content').value = '';
+        loadNotes();
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Ошибка добавления';
+      }
+    };
+
+    window.deleteNote = async function(id) {
+      if (!confirm('Удалить заметку?')) return;
+      await fetchWithAuth(`/notes/${id}`, { method: 'DELETE' });
+      loadNotes();
+    };
+
+    loadNotes();
+  </script>
+</body>
+</html> 

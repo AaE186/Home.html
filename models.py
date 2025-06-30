@@ -1,22 +1,53 @@
-from django.db import models
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey, Boolean
+from sqlalchemy.orm import relationship
+from .database import Base
+from datetime import datetime
 
-class Articles(models.Model):
-    title = models.CharField('Название', max_length=50)
-    anons = models.CharField('Анонс', max_length=250)
-    full_text = models.TextField('Статья')
-    date = models.DateTimeField('Дата публикации')
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    hashed_password = Column(String, nullable=False)
+    notes = relationship("Note", back_populates="owner")
+    expenses = relationship("Expense", back_populates="owner")
+    trainings = relationship("Training", back_populates="owner")
+    goals = relationship("Goal", back_populates="owner")
 
-    def __str__(self):
-        return self.title
+class Note(Base):
+    __tablename__ = "notes"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="notes")
 
-    class Meta:
-        verbose_name = 'Новость'
-        verbose_name_plural = 'Новости'
+class Expense(Base):
+    __tablename__ = "expenses"
+    id = Column(Integer, primary_key=True, index=True)
+    amount = Column(Float, nullable=False)
+    category = Column(String, nullable=False)
+    date = Column(DateTime, default=datetime.utcnow)
+    comment = Column(String)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="expenses")
 
-class Note(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    created_at = models.DateTimeField(auto_now_add=True)
+class Training(Base):
+    __tablename__ = "trainings"
+    id = Column(Integer, primary_key=True, index=True)
+    type = Column(String, nullable=False)
+    duration = Column(Integer, nullable=False)  # в минутах
+    date = Column(DateTime, default=datetime.utcnow)
+    comment = Column(String)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="trainings")
 
-    def __str__(self):
-        return self.title
+class Goal(Base):
+    __tablename__ = "goals"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(String)
+    status = Column(String, default="active")  # active/completed
+    deadline = Column(DateTime)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="goals") 

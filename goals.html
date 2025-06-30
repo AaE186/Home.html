@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Цели</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Цели</div>
+    <a href="index.html" class="card-link" style="margin-bottom:1em;display:inline-block;">← Главное меню</a>
+    <form id="goal-form" class="auth-form" style="margin-bottom:2em;">
+      <input type="text" id="goal-title" placeholder="Название цели" required>
+      <input type="text" id="goal-description" placeholder="Описание">
+      <select id="goal-status">
+        <option value="active">Активна</option>
+        <option value="completed">Завершена</option>
+      </select>
+      <input type="date" id="goal-deadline">
+      <button type="submit">Добавить цель</button>
+      <div class="error" id="goal-error"></div>
+    </form>
+    <div id="goals-list"></div>
+  </div>
+  <script src="common.js"></script>
+  <script>
+    if (!getToken()) window.location.href = 'index.html';
+
+    async function loadGoals() {
+      const res = await fetchWithAuth('/goals');
+      const goals = await res.json();
+      const list = document.getElementById('goals-list');
+      if (!goals.length) {
+        list.innerHTML = '<div style="color:#b8c1ec;">Нет целей</div>';
+        return;
+      }
+      list.innerHTML = goals.map(goal => `
+        <div class="card-link" style="text-align:left;position:relative;margin-bottom:0.7em;">
+          <b>${goal.title}</b> — <span>${goal.status === 'completed' ? 'Завершена' : 'Активна'}</span><br>
+          <span style="font-size:0.98em;">${goal.description || ''}</span><br>
+          <span style="font-size:0.9em;color:#b8c1ec;">${goal.deadline ? new Date(goal.deadline).toLocaleDateString('ru-RU') : ''}</span>
+          <button onclick="deleteGoal(${goal.id})" style="position:absolute;top:10px;right:10px;background:#ff6b6b;color:#fff;border:none;border-radius:0.7em;padding:0.3em 0.8em;cursor:pointer;">Удалить</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('goal-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const title = document.getElementById('goal-title').value.trim();
+      const description = document.getElementById('goal-description').value.trim();
+      const status = document.getElementById('goal-status').value;
+      const deadline = document.getElementById('goal-deadline').value;
+      const errorDiv = document.getElementById('goal-error');
+      errorDiv.textContent = '';
+      if (!title) {
+        errorDiv.textContent = 'Название обязательно';
+        return;
+      }
+      try {
+        await fetchWithAuth('/goals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description, status, deadline: deadline || null })
+        });
+        document.getElementById('goal-form').reset();
+        loadGoals();
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Ошибка добавления';
+      }
+    };
+
+    window.deleteGoal = async function(id) {
+      if (!confirm('Удалить цель?')) return;
+      await fetchWithAuth(`/goals/${id}`, { method: 'DELETE' });
+      loadGoals();
+    };
+
+    loadGoals();
+  </script>
+</body>
+</html> 

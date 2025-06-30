@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Тренировки</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">Тренировки</div>
+    <a href="index.html" class="card-link" style="margin-bottom:1em;display:inline-block;">← Главное меню</a>
+    <form id="training-form" class="auth-form" style="margin-bottom:2em;">
+      <input type="text" id="training-type" placeholder="Тип тренировки" required>
+      <input type="number" id="training-duration" placeholder="Длительность (мин)" min="1" required>
+      <input type="date" id="training-date" required>
+      <input type="text" id="training-comment" placeholder="Комментарий">
+      <button type="submit">Добавить тренировку</button>
+      <div class="error" id="training-error"></div>
+    </form>
+    <div id="trainings-list"></div>
+  </div>
+  <script src="common.js"></script>
+  <script>
+    if (!getToken()) window.location.href = 'index.html';
+
+    async function loadTrainings() {
+      const res = await fetchWithAuth('/trainings');
+      const trainings = await res.json();
+      const list = document.getElementById('trainings-list');
+      if (!trainings.length) {
+        list.innerHTML = '<div style="color:#b8c1ec;">Нет тренировок</div>';
+        return;
+      }
+      list.innerHTML = trainings.map(tr => `
+        <div class="card-link" style="text-align:left;position:relative;margin-bottom:0.7em;">
+          <b>${tr.type}</b> — <span>${tr.duration} мин</span><br>
+          <span style="font-size:0.98em;">${tr.comment || ''}</span><br>
+          <span style="font-size:0.9em;color:#b8c1ec;">${new Date(tr.date).toLocaleDateString('ru-RU')}</span>
+          <button onclick="deleteTraining(${tr.id})" style="position:absolute;top:10px;right:10px;background:#ff6b6b;color:#fff;border:none;border-radius:0.7em;padding:0.3em 0.8em;cursor:pointer;">Удалить</button>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('training-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const type = document.getElementById('training-type').value.trim();
+      const duration = parseInt(document.getElementById('training-duration').value);
+      const date = document.getElementById('training-date').value;
+      const comment = document.getElementById('training-comment').value.trim();
+      const errorDiv = document.getElementById('training-error');
+      errorDiv.textContent = '';
+      if (!type || !duration || !date) {
+        errorDiv.textContent = 'Заполните все обязательные поля';
+        return;
+      }
+      try {
+        await fetchWithAuth('/trainings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, duration, date, comment })
+        });
+        document.getElementById('training-form').reset();
+        loadTrainings();
+      } catch (err) {
+        errorDiv.textContent = err.message || 'Ошибка добавления';
+      }
+    };
+
+    window.deleteTraining = async function(id) {
+      if (!confirm('Удалить тренировку?')) return;
+      await fetchWithAuth(`/trainings/${id}`, { method: 'DELETE' });
+      loadTrainings();
+    };
+
+    // Установить сегодняшнюю дату по умолчанию
+    document.getElementById('training-date').value = new Date().toISOString().slice(0,10);
+    loadTrainings();
+  </script>
+</body>
+</html> 
